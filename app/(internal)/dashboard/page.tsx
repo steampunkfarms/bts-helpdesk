@@ -1,11 +1,9 @@
 import { db } from '@/lib/db'
 import { helpdeskTickets } from '@/lib/schema'
-import { eq, and, lt, sql } from 'drizzle-orm'
+import { and, sql } from 'drizzle-orm'
 import Link from 'next/link'
 
 export default async function DashboardPage() {
-  const now = new Date()
-
   // Counts by status
   const statusCounts = await db
     .select({
@@ -27,11 +25,7 @@ export default async function DashboardPage() {
       count: sql<number>`count(*)::int`,
     })
     .from(helpdeskTickets)
-    .where(
-      and(
-        sql`${helpdeskTickets.status} NOT IN ('resolved', 'closed')`
-      )
-    )
+    .where(sql`${helpdeskTickets.status} NOT IN ('resolved', 'closed')`)
     .groupBy(helpdeskTickets.priority)
 
   const priorityMap: Record<string, number> = {}
@@ -75,12 +69,12 @@ export default async function DashboardPage() {
     <div>
       <h2 className="text-xl font-bold mb-6">Dashboard</h2>
 
-      {/* Stats cards */}
+      {/* Stats cards — clickable */}
       <div className="grid grid-cols-4 gap-4 mb-8">
-        <StatCard label="Open Tickets" value={openCount} />
-        <StatCard label="Critical" value={priorityMap['critical'] ?? 0} color="text-red-400" />
-        <StatCard label="High" value={priorityMap['high'] ?? 0} color="text-orange-400" />
-        <StatCard label="SLA Breaches" value={breachCount} color={breachCount > 0 ? 'text-red-400' : undefined} />
+        <StatCard label="Open Tickets" value={openCount} href="/tickets?status=open" />
+        <StatCard label="Critical" value={priorityMap['critical'] ?? 0} color="text-red-400" href="/tickets?priority=critical" />
+        <StatCard label="High" value={priorityMap['high'] ?? 0} color="text-orange-400" href="/tickets?priority=high" />
+        <StatCard label="SLA Breaches" value={breachCount} color={breachCount > 0 ? 'text-red-400' : undefined} href="/tickets" />
       </div>
 
       {/* Quick actions */}
@@ -92,10 +86,10 @@ export default async function DashboardPage() {
           + New Ticket
         </Link>
         <Link
-          href="/tickets?status=open"
+          href="/tickets"
           className="px-4 py-2 border border-gray-700 hover:border-gray-500 text-gray-300 rounded-lg text-sm"
         >
-          View Open Tickets
+          View All Tickets
         </Link>
       </div>
 
@@ -145,12 +139,12 @@ export default async function DashboardPage() {
   )
 }
 
-function StatCard({ label, value, color }: { label: string; value: number; color?: string }) {
+function StatCard({ label, value, color, href }: { label: string; value: number; color?: string; href: string }) {
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
+    <Link href={href} className="bg-gray-900 border border-gray-800 rounded-lg p-4 hover:border-gray-600 transition-colors">
       <p className="text-gray-400 text-xs mb-1">{label}</p>
       <p className={`text-2xl font-bold ${color ?? 'text-white'}`}>{value}</p>
-    </div>
+    </Link>
   )
 }
 
