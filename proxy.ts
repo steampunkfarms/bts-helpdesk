@@ -9,6 +9,8 @@ export default async function proxy(req: NextRequest) {
     pathname === '/api/health' ||
     pathname === '/api/email/inbound' ||
     pathname === '/api/twilio/inbound' ||
+    pathname.startsWith('/api/webhooks/') ||
+    pathname.startsWith('/api/cron/') ||
     pathname === '/login' ||
     pathname === '/portal/login' ||
     pathname.startsWith('/api/auth/') ||
