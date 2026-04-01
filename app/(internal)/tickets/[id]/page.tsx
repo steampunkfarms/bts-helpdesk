@@ -56,6 +56,7 @@ export default function TicketDetailPage() {
   const [replyContent, setReplyContent] = useState('')
   const [isInternalNote, setIsInternalNote] = useState(false)
   const [sending, setSending] = useState(false)
+  const [generatingKb, setGeneratingKb] = useState(false)
 
   useEffect(() => {
     fetch(`/api/tickets/${id}`)
@@ -102,6 +103,38 @@ export default function TicketDetailPage() {
     const res = await fetch(`/api/tickets/${id}`)
     setData(await res.json())
     setSending(false)
+  }
+
+  async function generateKbArticle() {
+    setGeneratingKb(true)
+    const res = await fetch('/api/kb/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ticketId: id }),
+    })
+    if (res.ok) {
+      const draft = await res.json()
+      // Create the article as draft
+      const createRes = await fetch('/api/kb', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: draft.title,
+          slug: draft.slug,
+          content: draft.content,
+          excerpt: draft.excerpt,
+          category: draft.category,
+          tags: draft.tags,
+          sourceTicketId: draft.sourceTicketId,
+          isPublished: false,
+        }),
+      })
+      if (createRes.ok) {
+        const article = await createRes.json()
+        router.push(`/kb/${article.id}`)
+      }
+    }
+    setGeneratingKb(false)
   }
 
   if (!data) return <div className="text-gray-500">Loading...</div>
@@ -287,6 +320,18 @@ export default function TicketDetailPage() {
               </div>
             )}
           </SidebarCard>
+        )}
+
+        {/* Generate KB Article */}
+        {['resolved', 'closed'].includes(ticket.status) && (
+          <button
+            type="button"
+            onClick={generateKbArticle}
+            disabled={generatingKb}
+            className="w-full px-3 py-2 bg-indigo-700 hover:bg-indigo-600 disabled:opacity-50 text-white rounded-lg text-sm font-medium"
+          >
+            {generatingKb ? 'Generating...' : 'Generate KB Article'}
+          </button>
         )}
 
         {/* Metadata */}

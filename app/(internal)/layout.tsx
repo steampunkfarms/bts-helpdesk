@@ -21,6 +21,7 @@ export default async function InternalLayout({ children }: { children: React.Rea
           <NavLink href="/tickets/new">New Ticket</NavLink>
           <NavLink href="/clients">Clients</NavLink>
           <NavLink href="/reports">Reports</NavLink>
+          <NavLink href="/kb">Knowledge Base</NavLink>
           <NavLink href="/rmm">RMM Agents</NavLink>
           {session.role === 'admin' && <NavLink href="/users">Users</NavLink>}
         </div>
