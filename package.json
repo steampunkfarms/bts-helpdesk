@@ -10,6 +10,8 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.80.0",
     "@neondatabase/serverless": "^1.0.2",
+    "@react-pdf/renderer": "^4.3.2",
+    "@vercel/blob": "^2.3.2",
     "bcryptjs": "^3.0.3",
     "drizzle-orm": "^0.45.2",
     "jose": "^6.2.2",

@@ -77,7 +77,8 @@ export const helpdeskTickets = pgTable('helpdesk_tickets', {
   status: text('status').notNull().default('open'), // open | awaiting_client | awaiting_tech | in_progress | resolved | closed
 
   isInternal: boolean('is_internal').notNull().default(false),
-  source: text('source').notNull().default('portal'), // email | portal | phone | internal
+  isProactive: boolean('is_proactive').notNull().default(false),
+  source: text('source').notNull().default('portal'), // email | portal | phone | internal | rmm
 
   // AI Triage
   aiCategory: text('ai_category'),
@@ -164,6 +165,55 @@ export const helpdeskKbArticles = pgTable('helpdesk_kb_articles', {
   helpfulCount: integer('helpful_count').notNull().default(0),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
+})
+
+// ── RMM Alert Deduplication ─────────────────────────────────────────────────
+// Prevents duplicate tickets from the same RMM alert.
+
+export const helpdeskRmmAlerts = pgTable('helpdesk_rmm_alerts', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  rmmAlertId: text('rmm_alert_id').notNull().unique(),
+  rmmAgentId: text('rmm_agent_id'),
+  hostname: text('hostname'),
+  alertType: text('alert_type'), // disk_health | patch_fail | cpu_high | av_detect | offline | custom
+  severity: text('severity'), // info | warning | error | critical
+  rawPayload: jsonb('raw_payload'),
+  ticketId: uuid('ticket_id').references(() => helpdeskTickets.id),
+  dismissed: boolean('dismissed').notNull().default(false),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+})
+
+// ── RMM Agent-to-Client Mapping ────────────────────────────────────────────
+// Maps RMM agent IDs to helpdesk clients for automatic ticket routing.
+
+export const helpdeskRmmAgentMap = pgTable('helpdesk_rmm_agent_map', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  rmmAgentId: text('rmm_agent_id').notNull().unique(),
+  hostname: text('hostname').notNull(),
+  clientId: uuid('client_id').notNull().references(() => helpdeskClients.id),
+  machineLabel: text('machine_label'), // "Kathy's desk", "Front reception"
+  isActive: boolean('is_active').notNull().default(true),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+})
+
+// ── Client Reports ─────────────────────────────────────────────────────────
+// AI-generated proof-of-value reports stored as PDFs in Vercel Blob.
+
+export const helpdeskReports = pgTable('helpdesk_reports', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  clientId: uuid('client_id').notNull().references(() => helpdeskClients.id),
+  reportType: text('report_type').notNull(), // monthly_summary | quarterly_priority | semi_annual_savings | annual_review
+  periodStart: timestamp('period_start', { withTimezone: true }).notNull(),
+  periodEnd: timestamp('period_end', { withTimezone: true }).notNull(),
+  periodLabel: text('period_label').notNull(), // "April 2026", "Q2 2026", "H1 2026"
+  generatedAt: timestamp('generated_at', { withTimezone: true }).defaultNow(),
+  pdfUrl: text('pdf_url'),
+  reportData: jsonb('report_data'),
+  status: text('status').notNull().default('draft'), // draft | approved | sent
+  sentAt: timestamp('sent_at', { withTimezone: true }),
+  reviewedBy: text('reviewed_by'),
+  notes: text('notes'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
 })
 
 // ── Audit Log ───────────────────────────────────────────────────────────────
