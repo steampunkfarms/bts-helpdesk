@@ -70,6 +70,17 @@ export default function ClientsPage() {
     setSaving(false)
   }
 
+  async function impersonate(clientId: string) {
+    const res = await fetch('/api/admin/impersonate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ clientId }),
+    })
+    if (res.ok) {
+      window.location.href = '/portal'
+    }
+  }
+
   const inputClass = 'px-2 py-1 bg-gray-800 border border-gray-600 rounded text-white text-sm w-full focus:border-orange-500 focus:outline-none'
 
   return (
@@ -140,13 +151,21 @@ export default function ClientsPage() {
                     </td>
                   </tr>
                 ) : (
-                  <tr key={c.id} className="border-b border-gray-800 last:border-0 hover:bg-gray-800/50 cursor-pointer" onClick={() => startEdit(c)}>
-                    <td className="px-4 py-3 text-white">{c.clientName}</td>
-                    <td className="px-4 py-3 text-gray-300">{c.primaryEmail}</td>
-                    <td className="px-4 py-3 text-gray-400">{c.phone ?? '—'}</td>
-                    <td className="px-4 py-3 text-gray-400">{c.slaTier}</td>
-                    <td className="px-4 py-3">{c.isActive ? '✓' : '—'}</td>
-                    <td className="px-4 py-3 text-gray-600 text-xs">click to edit</td>
+                  <tr key={c.id} className="border-b border-gray-800 last:border-0 hover:bg-gray-800/50">
+                    <td className="px-4 py-3 text-white cursor-pointer" onClick={() => startEdit(c)}>{c.clientName}</td>
+                    <td className="px-4 py-3 text-gray-300 cursor-pointer" onClick={() => startEdit(c)}>{c.primaryEmail}</td>
+                    <td className="px-4 py-3 text-gray-400 cursor-pointer" onClick={() => startEdit(c)}>{c.phone ?? '—'}</td>
+                    <td className="px-4 py-3 text-gray-400 cursor-pointer" onClick={() => startEdit(c)}>{c.slaTier}</td>
+                    <td className="px-4 py-3 cursor-pointer" onClick={() => startEdit(c)}>{c.isActive ? '✓' : '—'}</td>
+                    <td className="px-4 py-3">
+                      <button
+                        type="button"
+                        onClick={() => impersonate(c.id)}
+                        className="px-2 py-1 bg-indigo-700 hover:bg-indigo-600 text-white rounded text-xs"
+                      >
+                        View Portal
+                      </button>
+                    </td>
                   </tr>
                 )
               )

@@ -8,8 +8,16 @@ export default async function PortalLayout({ children }: { children: React.React
     redirect('/portal/login')
   }
 
+  const isImpersonating = session.name.includes('(as ')
+
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Impersonation banner */}
+      {isImpersonating && (
+        <div className="bg-indigo-700 text-white text-center py-2 text-sm">
+          Viewing portal as client — <a href="/api/auth/logout" className="underline font-medium">Exit to Admin</a>
+        </div>
+      )}
       {/* Top nav */}
       <nav className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
