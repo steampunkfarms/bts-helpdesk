@@ -34,6 +34,13 @@ export interface ReportData {
   topCategories: { category: string; count: number }[]
   notableTickets: { ticketNumber: string; subject: string; priority: string; summary: string }[]
 
+  chatbot: {
+    totalSessions: number
+    resolvedByChatbot: number
+    escalatedToHuman: number
+    resolutionRate: number
+  }
+
   hypotheticalBreakFixCost?: number
   actualMspCost?: number
   estimatedSavings?: number
@@ -214,6 +221,17 @@ export async function buildReportData(params: {
   const actualMspCost = (params.mspMonthlyCost ?? 295) * Math.max(1, monthsInPeriod)
   const estimatedSavings = Math.max(0, hypotheticalBreakFixCost - actualMspCost)
 
+  // Chatbot metrics
+  const chatbotTickets = tickets.filter((t) => t.source === 'chatbot')
+  const chatbotResolved = chatbotTickets.filter((t) => t.resolvedBy === 'chatbot').length
+  const chatbotEscalated = chatbotTickets.filter((t) => t.resolvedBy !== 'chatbot' && t.resolvedBy !== null).length
+  const chatbot = {
+    totalSessions: chatbotTickets.length,
+    resolvedByChatbot: chatbotResolved,
+    escalatedToHuman: chatbotEscalated,
+    resolutionRate: chatbotTickets.length > 0 ? Math.round((chatbotResolved / chatbotTickets.length) * 100) : 0,
+  }
+
   return {
     client: { name: client.clientName, slaTier: client.slaTier },
     period: { start: periodStart, end: periodEnd, label: periodLabel },
@@ -238,6 +256,7 @@ export async function buildReportData(params: {
     includedHoursRemaining,
     topCategories,
     notableTickets,
+    chatbot,
     hypotheticalBreakFixCost,
     actualMspCost,
     estimatedSavings,

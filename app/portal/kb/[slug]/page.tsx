@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 interface Article {
   id: string
@@ -63,7 +65,7 @@ export default function PortalKbArticlePage() {
       </div>
 
       <div className="bg-white border border-gray-200 rounded-xl p-6 prose prose-sm max-w-none text-gray-700">
-        <div dangerouslySetInnerHTML={{ __html: article.content }} />
+        <ReactMarkdown remarkPlugins={[remarkGfm]}>{article.content}</ReactMarkdown>
       </div>
 
       {/* Feedback */}

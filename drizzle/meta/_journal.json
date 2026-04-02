@@ -15,6 +15,13 @@
       "when": 1775068011946,
       "tag": "0001_amusing_ezekiel",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1775092102515,
+      "tag": "0002_tiny_pandemic",
+      "breakpoints": true
     }
   ]
 }

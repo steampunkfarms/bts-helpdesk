@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 interface Article {
   id: string
@@ -192,13 +194,13 @@ export default function KbArticleEditorPage() {
         </div>
 
         <div>
-          <label className="block text-xs text-gray-400 mb-1">Content (HTML)</label>
+          <label className="block text-xs text-gray-400 mb-1">Content (Markdown)</label>
           <textarea
             value={form.content}
             onChange={(e) => setForm({ ...form, content: e.target.value })}
             rows={20}
             className="w-full bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-sm text-white font-mono"
-            placeholder="<h2>Problem</h2><p>Describe the issue...</p>"
+            placeholder="## Problem&#10;&#10;Describe the issue...&#10;&#10;## Solution&#10;&#10;1. First step&#10;2. Second step"
           />
         </div>
 
@@ -206,10 +208,9 @@ export default function KbArticleEditorPage() {
         {form.content && (
           <div>
             <label className="block text-xs text-gray-400 mb-1">Preview</label>
-            <div
-              className="bg-white text-gray-900 rounded-lg p-6 prose prose-sm max-w-none"
-              dangerouslySetInnerHTML={{ __html: form.content }}
-            />
+            <div className="bg-white text-gray-900 rounded-lg p-6 prose prose-sm max-w-none">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{form.content}</ReactMarkdown>
+            </div>
           </div>
         )}
       </div>

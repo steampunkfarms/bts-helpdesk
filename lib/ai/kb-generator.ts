@@ -24,11 +24,12 @@ The article should help the client self-serve if they encounter the same issue a
 Return a JSON object with:
 1. "title" — Clear, searchable article title (not the ticket subject — rewrite for discoverability)
 2. "slug" — URL-safe lowercase slug derived from the title (letters, numbers, hyphens only)
-3. "content" — The article body in HTML. Structure with:
-   - A brief description of the problem
-   - Step-by-step solution (if applicable)
+3. "content" — The article body in Markdown. Structure with:
+   - A brief description of the problem (## heading)
+   - Step-by-step solution as a numbered list (if applicable)
    - Any preventive measures or tips
    - Keep it non-technical — these are for business owners, not IT staff
+   - Use ## for section headings, **bold** for emphasis, - for bullet lists, 1. for numbered lists
 4. "excerpt" — 1-2 sentence plain text summary for search results
 5. "category" — One of: Getting Started, Troubleshooting, How-To, Security, Network, Email, Printing, Software
 6. "tags" — Array of 2-4 relevant search tags
@@ -73,7 +74,7 @@ export async function generateKbArticle(params: {
     return {
       title: `How to resolve: ${params.ticketSubject}`,
       slug: params.ticketSubject.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
-      content: `<p>This article was auto-generated but could not be parsed. Please edit manually.</p>`,
+      content: `This article was auto-generated but could not be parsed. Please edit manually.`,
       excerpt: params.ticketSubject,
       category: 'Troubleshooting',
       tags: ['auto-generated'],

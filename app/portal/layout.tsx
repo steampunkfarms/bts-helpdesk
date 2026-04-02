@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { getSession } from '@/lib/auth'
 import { redirect } from 'next/navigation'
+import ChatbotWidget from './components/chatbot-widget'
 
 export default async function PortalLayout({ children }: { children: React.ReactNode }) {
   const session = await getSession()
@@ -57,6 +58,9 @@ export default async function PortalLayout({ children }: { children: React.React
       <footer className="border-t border-gray-200 mt-12 py-6 text-center text-sm text-gray-400">
         <p>Backcountry Tech Solutions / helpdesk@tronboll.us / (760) 782-8476</p>
       </footer>
+
+      {/* Chatbot */}
+      <ChatbotWidget />
     </div>
   )
 }

@@ -24,6 +24,8 @@ interface TicketDetail {
     slaResponseBreached: boolean
     slaResolutionBreached: boolean
     totalMinutes: number
+    resolvedBy: string | null
+    chatbotSessionId: string | null
     createdAt: string
   }
   client: { id: string; clientName: string; primaryEmail: string; phone: string | null; slaTier: string } | null
@@ -57,6 +59,8 @@ export default function TicketDetailPage() {
   const [isInternalNote, setIsInternalNote] = useState(false)
   const [sending, setSending] = useState(false)
   const [generatingKb, setGeneratingKb] = useState(false)
+  const [chatTranscript, setChatTranscript] = useState<{ role: string; content: string; timestamp: string }[] | null>(null)
+  const [showTranscript, setShowTranscript] = useState(false)
 
   useEffect(() => {
     fetch(`/api/tickets/${id}`)
@@ -334,9 +338,44 @@ export default function TicketDetailPage() {
           </button>
         )}
 
+        {/* Chatbot Transcript */}
+        {ticket.chatbotSessionId && (
+          <SidebarCard title="Chatbot Session">
+            <button
+              type="button"
+              onClick={async () => {
+                if (!chatTranscript) {
+                  const res = await fetch(`/api/chatbot/session/${ticket.chatbotSessionId}`)
+                  if (res.ok) {
+                    const data = await res.json()
+                    setChatTranscript(data.messages ?? [])
+                  }
+                }
+                setShowTranscript(!showTranscript)
+              }}
+              className="text-xs text-indigo-400 hover:text-indigo-300"
+            >
+              {showTranscript ? 'Hide Transcript' : 'View Transcript'}
+            </button>
+            {showTranscript && chatTranscript && (
+              <div className="mt-2 space-y-2 max-h-64 overflow-y-auto">
+                {chatTranscript.map((m, i) => (
+                  <div key={i} className="text-xs">
+                    <span className={m.role === 'user' ? 'text-cyan-400' : 'text-gray-400'}>
+                      {m.role === 'user' ? 'Client' : 'Bot'}:
+                    </span>
+                    <span className="text-gray-300 ml-1">{m.content.slice(0, 200)}{m.content.length > 200 ? '...' : ''}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </SidebarCard>
+        )}
+
         {/* Metadata */}
         <SidebarCard title="Details">
           <p className="text-xs text-gray-400">Source: {ticket.source}</p>
+          {ticket.resolvedBy && <p className="text-xs text-gray-400">Resolved by: {ticket.resolvedBy}</p>}
           <p className="text-xs text-gray-400">Time logged: {ticket.totalMinutes} min</p>
           <p className="text-xs text-gray-400">Created: {new Date(ticket.createdAt).toLocaleString()}</p>
         </SidebarCard>

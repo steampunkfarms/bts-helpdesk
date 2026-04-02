@@ -100,6 +100,12 @@ export const helpdeskTickets = pgTable('helpdesk_tickets', {
   totalMinutes: integer('total_minutes').notNull().default(0),
   billable: boolean('billable').notNull().default(true),
 
+  // Resolution tracking
+  resolvedBy: text('resolved_by'), // chatbot | tech | client | null
+
+  // Chatbot
+  chatbotSessionId: text('chatbot_session_id'),
+
   // Email Threading
   inboundEmailId: text('inbound_email_id'),
   lastMessageId: text('last_message_id'),
@@ -163,6 +169,7 @@ export const helpdeskKbArticles = pgTable('helpdesk_kb_articles', {
   tags: text('tags').array().default([]),
   viewCount: integer('view_count').notNull().default(0),
   helpfulCount: integer('helpful_count').notNull().default(0),
+  embedding: text('embedding'), // nullable — prep for future pgvector migration
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
 })
@@ -214,6 +221,24 @@ export const helpdeskReports = pgTable('helpdesk_reports', {
   reviewedBy: text('reviewed_by'),
   notes: text('notes'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+})
+
+// ── Chatbot Sessions ───────────────────────────────────────────────────────
+// Stores chatbot conversation transcripts and metrics per session.
+
+export const helpdeskChatbotSessions = pgTable('helpdesk_chatbot_sessions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  ticketId: uuid('ticket_id').notNull().references(() => helpdeskTickets.id),
+  userId: uuid('user_id').notNull().references(() => helpdeskUsers.id),
+  clientId: uuid('client_id').notNull().references(() => helpdeskClients.id),
+  messages: jsonb('messages').notNull().default('[]'),
+  // [{ role: 'user'|'assistant', content: string, timestamp: ISO, kbArticleIds?: string[], feedback?: 'up'|'down' }]
+  kbArticlesCited: text('kb_articles_cited').array().default([]),
+  wasEscalated: boolean('was_escalated').notNull().default(false),
+  escalatedAt: timestamp('escalated_at', { withTimezone: true }),
+  feedbackRating: integer('feedback_rating'), // 1-5 per-session
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
 })
 
 // ── Audit Log ───────────────────────────────────────────────────────────────
