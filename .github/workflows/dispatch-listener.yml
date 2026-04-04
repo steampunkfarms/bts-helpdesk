@@ -1,0 +1,42 @@
+name: Dispatch Event Listener
+
+on:
+  repository_dispatch:
+    types:
+      - governance-update
+      - workflow-update
+      - renovate-config-update
+
+jobs:
+  acknowledge:
+    name: Log dispatch event
+    runs-on: ubuntu-latest
+    steps:
+      - name: Log event
+        run: |
+          echo "Dispatch event received: ${{ github.event.action }}"
+          echo "Source repo: ${{ github.event.client_payload.source_repo }}"
+          echo "Triggered at: ${{ github.event.client_payload.triggered_at }}"
+          echo "Commit: ${{ github.event.client_payload.commit_sha }}"
+
+      - name: Re-run security workflows on workflow-update
+        if: github.event.action == 'workflow-update'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const workflows = await github.rest.actions.listRepoWorkflows({
+              owner: context.repo.owner,
+              repo: context.repo.repo
+            });
+            const securityWorkflow = workflows.data.workflows.find(
+              w => w.name === 'Security'
+            );
+            if (securityWorkflow) {
+              await github.rest.actions.createWorkflowDispatch({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                workflow_id: securityWorkflow.id,
+                ref: 'main'
+              });
+            }
